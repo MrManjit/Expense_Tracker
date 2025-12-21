@@ -47,4 +47,3 @@ services:
       - key: CSRF_TRUSTED_ORIGINS
         # Use your actual hostname if this var isn't supported in your UI
         value: https://expense-tracker.onrender.com
-    healthCheckPath: /health
