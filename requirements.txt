@@ -155,7 +155,7 @@ zipp==3.21.0
 gunicorn==20.2.0
 gunicorn>=21.2
 whitenoise>=6.5
-dj-database-url>=2          # only if using Postgres
-psycopg[binary]>=3          # only if using Postgres; avoid compilation
-djangorestframework>=3.15   # only if you use DRF
-django-cors-headers>=3.13   # only if you need CORS
+dj-database-url>=2
+psycopg[binary]>=3 
+djangorestframework>=3.15
+django-cors-headers>=3.13  
