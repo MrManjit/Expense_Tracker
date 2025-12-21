@@ -153,3 +153,4 @@ websocket-client==1.8.0
 whitenoise==6.11.0
 widgetsnbextension==4.0.14
 zipp==3.21.0
+gunicorn==20.2.0
