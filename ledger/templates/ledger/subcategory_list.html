@@ -1,0 +1,34 @@
+{% extends 'ledger/base.html' %}
+
+{% block title %}Subcategories - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Subcategories</h2>
+    <a href="{% url 'subcategory_create' %}" class="btn btn-primary">Add Subcategory</a>
+</div>
+
+{% if subcategories %}
+    <div class="row">
+        {% for subcategory in subcategories %}
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ subcategory.name }}</h5>
+                    <p class="card-text">
+                        <strong>Category:</strong> {{ subcategory.category.name }}
+                    </p>
+                    <p class="card-text text-muted">Created {{ subcategory.created_at|date:"M d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center mt-5">
+        <h4 class="text-muted">No subcategories yet</h4>
+        <p class="text-muted">Create subcategories to further organize your expenses!</p>
+        <a href="{% url 'subcategory_create' %}" class="btn btn-primary">Add Your First Subcategory</a>
+    </div>
+{% endif %}
+{% endblock %}
