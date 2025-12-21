@@ -1,12 +1,40 @@
+# services:
+#   - type: web
+#     name: expense-tracker
+#     runtime: python
+#     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+#     startCommand: "python manage.py runserver 0.0.0.0:$PORT"
+#     envVars:
+#       - key: DJANGO_SETTINGS_MODULE
+#         value: Expense_Tracker.settings
+#       - key: DEBUG
+#         value: "False"
+#       - key: SECRET_KEY
+#         generateValue: true
+#       - key: ALLOWED_HOSTS
+#         fromService:
+#           type: web
+#           name: expense-tracker
+#           property: host
+
+
+
 services:
   - type: web
     name: expense-tracker
     runtime: python
-    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
-    startCommand: "python manage.py runserver 0.0.0.0:$PORT"
+    plan: free
+    buildCommand: >
+      pip install -r requirements.txt &&
+      python manage.py collectstatic --noinput &&
+      python manage.py migrate --noinput
+    startCommand: >
+      gunicorn Expense_Tracker.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: Expense_Tracker.settings
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: DEBUG
         value: "False"
       - key: SECRET_KEY
@@ -16,3 +44,7 @@ services:
           type: web
           name: expense-tracker
           property: host
+      - key: CSRF_TRUSTED_ORIGINS
+        # Use your actual hostname if this var isn't supported in your UI
+        value: https://expense-tracker.onrender.com
+    healthCheckPath: /health
