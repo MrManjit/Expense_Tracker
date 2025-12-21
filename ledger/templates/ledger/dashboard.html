@@ -4,166 +4,333 @@
 {% block title %}Dashboard - Expense Tracker{% endblock %}
 
 {% block content %}
-<div class="row">
-  <div class="col-12">
-    <h2>Dashboard</h2>
-
-    <!-- Monthly Summary -->
-    <div class="card mb-4">
-      <div class="card-body">
-        <h5 class="card-title">This Month's Total</h5>
-        <h2 class="text-primary">₹{{ total_month|floatformat:2|intcomma }}</h2>
-      </div>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">
+                <i class="fas fa-tachometer-alt me-3 text-success"></i>Dashboard
+            </h1>
+            <small class="text-muted">{{ today|date:"l, F j, Y" }}</small>
+        </div>
     </div>
+</div>
 
-    <!-- Quick Add Expense -->
-    <div class="card mb-4">
-      <div class="card-header">
-        <h5 class="mb-0">Quick Add Expense</h5>
-      </div>
-      <div class="card-body">
-        <form method="post" action="">
-          {% csrf_token %}
-          <input type="hidden" name="date" value="{{ today|date:'Y-m-d' }}">
-
-          {% if form.non_field_errors %}
-            <div class="alert alert-danger mb-3">
-              {% for error in form.non_field_errors %}
-                {{ error }}
-              {% endfor %}
+<!-- Monthly Summary -->
+<div class="row mb-4">
+    <div class="col-md-6 col-lg-4">
+        <div class="stats-card">
+            <div class="mb-3">
+                <i class="fas fa-calendar-alt fa-2x text-success"></i>
             </div>
-          {% endif %}
-
-          <div class="row g-3">
-            <div class="col-md-2">
-              <label for="{{ form.amount.id_for_label }}" class="form-label">Amount *</label>
-              {{ form.amount }}
-              {% if form.amount.errors %}
-                <div class="text-danger small">{{ form.amount.errors }}</div>
-              {% endif %}
-            </div>
-
-            <div class="col-md-2">
-              <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
-              {{ form.category }}
-              {% if form.category.errors %}
-                <div class="text-danger small">{{ form.category.errors }}</div>
-              {% endif %}
-            </div>
-
-            <div class="col-md-3">
-              <label for="{{ form.subcategory.id_for_label }}" class="form-label">Subcategory</label>
-              {{ form.subcategory }}
-              {% if form.subcategory.errors %}
-                <div class="text-danger small">{{ form.subcategory.errors }}</div>
-              {% endif %}
-            </div>
-
-            <div class="col-md-3">
-              <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
-              {{ form.description }}
-              {% if form.description.errors %}
-                <div class="text-danger small">{{ form.description.errors }}</div>
-              {% endif %}
-            </div>
-
-            <div class="col-md-2">
-              <label class="form-label">&nbsp;</label>
-              <button type="submit" class="btn btn-primary w-100">Add</button>
-            </div>
-          </div>
-        </form>
-      </div>
+            <h2>₹{{ total_month|floatformat:2|intcomma }}</h2>
+            <p>{{ selected_month_name }} {{ selected_year }} Total</p>
+        </div>
     </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="stats-card">
+            <div class="mb-3">
+                <i class="fas fa-calendar-day fa-2x text-success"></i>
+            </div>
+            <h2>₹{{ total_today|floatformat:2|intcomma }}</h2>
+            <p>Today's Expenses</p>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="stats-card">
+            <div class="mb-3">
+                <i class="fas fa-chart-line fa-2x text-success"></i>
+            </div>
+            <h2>₹{{ total_year|floatformat:2|intcomma }}</h2>
+            <p>{{ selected_year }} Total</p>
+        </div>
+    </div>
+</div>
 
-    <!-- Safely embed the subcategory -> category map -->
-    {{ subcategory_category_map|json_script:"subcatCategoryMap" }}
+<!-- Filter Widget -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card-custom">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2 text-success"></i>Filter Dashboard
+                    </h5>
+                    <form method="get" class="d-flex gap-3 align-items-end">
+                        <div class="form-group-aligned">
+                            <label for="year_select" class="form-label-custom">
+                                <i class="fas fa-calendar me-1"></i>Year
+                            </label>
+                            <select name="year" id="year_select" class="form-select-custom" onchange="this.form.submit()">
+                                {% for year in year_options %}
+                                    <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group-aligned">
+                            <label for="month_select" class="form-label-custom">
+                                <i class="fas fa-calendar-alt me-1"></i>Month
+                            </label>
+                            <select name="month" id="month_select" class="form-select-custom" onchange="this.form.submit()">
+                                {% for month_value, month_name in month_options %}
+                                    <option value="{{ month_value }}" {% if month_value == selected_month %}selected{% endif %}>{{ month_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group-aligned">
+                            <button type="submit" class="btn btn-custom-primary">
+                                <i class="fas fa-search me-1"></i>Filter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const categorySelect = document.getElementById('id_category');
-        const subcategorySelect = document.getElementById('id_subcategory');
+<!-- Quick Add Expense -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <i class="fas fa-plus-circle me-2"></i>
+                <h5 class="mb-0">Quick Add Expense</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="date" value="{{ today|date:'Y-m-d' }}">
 
-        if (categorySelect && subcategorySelect) {
-          // Parse mapping rendered by json_script safely
-          const subcategoryCategoryMap = JSON.parse(
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-custom mb-3">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6 col-lg-2">
+                            <div class="form-group-aligned">
+                                <label for="{{ form.amount.id_for_label }}" class="form-label-custom">
+                                    <i class="fas fa-rupee-sign me-1"></i>Amount *
+                                </label>
+                                {{ form.amount }}
+                                {% if form.amount.errors %}
+                                    <div class="text-danger small mt-1">{{ form.amount.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-2">
+                            <div class="form-group-aligned">
+                                <label for="{{ form.category.id_for_label }}" class="form-label-custom">
+                                    <i class="fas fa-tag me-1"></i>Category
+                                </label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                    <div class="text-danger small mt-1">{{ form.category.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3">
+                            <div class="form-group-aligned">
+                                <label for="{{ form.subcategory.id_for_label }}" class="form-label-custom">
+                                    <i class="fas fa-tags me-1"></i>Subcategory
+                                </label>
+                                {{ form.subcategory }}
+                                {% if form.subcategory.errors %}
+                                    <div class="text-danger small mt-1">{{ form.subcategory.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3">
+                            <div class="form-group-aligned">
+                                <label for="{{ form.description.id_for_label }}" class="form-label-custom">
+                                    <i class="fas fa-comment me-1"></i>Description
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-2">
+                            <div class="form-group-aligned">
+                                <div style="height: 24px;"></div> <!-- Spacer for label alignment -->
+                                <button type="submit" class="btn btn-custom-primary w-100">
+                                    <i class="fas fa-plus me-1"></i>Add Expense
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Safely embed the subcategory -> category map -->
+{{ subcategory_category_map|json_script:"subcatCategoryMap" }}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('id_category');
+    const subcategorySelect = document.getElementById('id_subcategory');
+
+    if (categorySelect && subcategorySelect) {
+        // Parse mapping rendered by json_script safely
+        const subcategoryCategoryMap = JSON.parse(
             document.getElementById('subcatCategoryMap').textContent
-          );
+        );
 
-          // Keep an original copy of all subcategory options
-          const allSubcategoryOptions = Array.from(subcategorySelect.options);
+        // Keep an original copy of all subcategory options
+        const allSubcategoryOptions = Array.from(subcategorySelect.options);
 
-          const normalize = (v) => String(v || '');
+        const normalize = (v) => String(v || '');
 
-          function renderSubcategories() {
+        function renderSubcategories() {
             const selectedCategoryId = normalize(categorySelect.value);
 
             // Reset options to just the blank/placeholder
             subcategorySelect.innerHTML = '<option value="">---------</option>';
 
             if (selectedCategoryId) {
-              // Append only those subcategories that belong to the selected category
-              allSubcategoryOptions.forEach(option => {
-                if (!option.value) return; // skip placeholder
-                const optionCategoryId = normalize(subcategoryCategoryMap[normalize(option.value)]);
-                if (optionCategoryId === selectedCategoryId) {
-                  subcategorySelect.appendChild(option.cloneNode(true));
-                }
-              });
+                // Append only those subcategories that belong to the selected category
+                allSubcategoryOptions.forEach(option => {
+                    if (!option.value) return; // skip placeholder
+                    const optionCategoryId = normalize(subcategoryCategoryMap[normalize(option.value)]);
+                    if (optionCategoryId === selectedCategoryId) {
+                        subcategorySelect.appendChild(option.cloneNode(true));
+                    }
+                });
             } else {
-              // No category selected -> show all subcategories
-              allSubcategoryOptions.forEach(option => {
-                if (!option.value) return;
-                subcategorySelect.appendChild(option.cloneNode(true));
-              });
+                // No category selected -> show all subcategories
+                allSubcategoryOptions.forEach(option => {
+                    if (!option.value) return;
+                    subcategorySelect.appendChild(option.cloneNode(true));
+                });
             }
 
             // If the currently selected subcategory is no longer visible, clear it
             if (subcategorySelect.selectedOptions.length) {
-              const sel = subcategorySelect.selectedOptions[0];
-              if (!sel || !Array.from(subcategorySelect.options).some(o => o.value === sel.value)) {
-                subcategorySelect.value = '';
-              }
+                const sel = subcategorySelect.selectedOptions[0];
+                if (!sel || !Array.from(subcategorySelect.options).some(o => o.value === sel.value)) {
+                    subcategorySelect.value = '';
+                }
             }
-          }
 
-          // Re-render when category changes
-          categorySelect.addEventListener('change', renderSubcategories);
-
-          // Render once on load in case category is pre-selected
-          renderSubcategories();
+            // Force consistent height after options change
+            subcategorySelect.style.height = '40px';
+            subcategorySelect.style.minHeight = '40px';
+            subcategorySelect.style.maxHeight = '40px';
         }
-      });
-    </script>
 
-    <!-- Today's Expenses -->
-    <div class="card">
-      <div class="card-header">
-        <h5 class="mb-0">Today's Expenses</h5>
-      </div>
-      <div class="card-body">
-        {% if today_expenses %}
-          <div class="list-group">
-            {% for expense in today_expenses %}
-              <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                  <strong>₹{{ expense.amount|floatformat:2|intcomma }}</strong>
-                  {% if expense.subcategory %}
-                    - {{ expense.subcategory.full_name }}
-                  {% elif expense.category %}
-                    - {{ expense.category.name }}
-                  {% endif %}
-                  {% if expense.description %} - {{ expense.description }}{% endif %}
-                </div>
-                <small class="text-muted">{{ expense.created_at|time:"H:i" }}</small>
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="text-muted">No expenses added today yet.</p>
-        {% endif %}
-      </div>
+        // Re-render when category changes
+        categorySelect.addEventListener('change', renderSubcategories);
+
+        // Render once on load in case category is pre-selected
+        renderSubcategories();
+    }
+});
+</script>
+
+<!-- Today's Expenses -->
+{% if selected_year == today.year and selected_month == today.month %}
+<div class="row">
+    <div class="col-12">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <i class="fas fa-calendar-day me-2"></i>
+                <h5 class="mb-0">Today's Expenses</h5>
+            </div>
+            <div class="card-body">
+                {% if today_expenses %}
+                    <div class="list-group list-group-flush">
+                        {% for expense in today_expenses %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-receipt fa-lg text-success"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-success">₹{{ expense.amount|floatformat:2|intcomma }}</div>
+                                        <div class="text-muted small">
+                                            {% if expense.subcategory %}
+                                                {{ expense.subcategory.full_name }}
+                                            {% elif expense.category %}
+                                                {{ expense.category.name }}
+                                            {% endif %}
+                                            {% if expense.description %} • {{ expense.description }}{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>{{ expense.created_at|time:"H:i" }}
+                                </small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No expenses added today yet</h5>
+                        <p class="text-muted">Start your day by adding your first expense!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
-  </div>
+</div>
+{% endif %}
+
+<!-- Recent Expenses -->
+<div class="row">
+    <div class="col-12">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <i class="fas fa-history me-2"></i>
+                <h5 class="mb-0">Expenses for {{ selected_month_name }} {{ selected_year }}</h5>
+            </div>
+            <div class="card-body">
+                {% if month_expenses %}
+                    <div class="list-group list-group-flush">
+                        {% for expense in month_expenses %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-receipt fa-lg text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-primary">₹{{ expense.amount|floatformat:2|intcomma }}</div>
+                                        <div class="text-muted small">
+                                            {% if expense.subcategory %}
+                                                {{ expense.subcategory.full_name }}
+                                            {% elif expense.category %}
+                                                {{ expense.category.name }}
+                                            {% endif %}
+                                            {% if expense.description %} • {{ expense.description }}{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ expense.date|date:"M d, Y" }}
+                                </small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No expenses found for {{ selected_month_name }} {{ selected_year }}</h5>
+                        <p class="text-muted">Try selecting a different month or year.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

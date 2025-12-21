@@ -6,34 +6,359 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Expense Tracker{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-green: #2c5530;
+            --secondary-green: #1e7b3d;
+            --light-green: #e8f5e8;
+            --accent-green: #4caf50;
+        }
+
+        body {
+            background: linear-gradient(135deg, rgba(188, 205, 199, 0.1) 0%, rgba(173, 176, 143, 0.1) 100%),
+                        #f8f9fa;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .navbar-brand:hover {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9) !important;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin: 0 0.25rem;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .navbar-text {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+        }
+
+        .main-content {
+            padding: 2rem 0;
+            min-height: calc(100vh - 76px);
+        }
+
+        .card-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header-custom {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            color: white;
+            border: none;
+            border-radius: 16px 16px 0 0 !important;
+            padding: 1.5rem;
+        }
+
+        .card-header-custom h4, .card-header-custom h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .btn-custom-primary {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            height: 40px;
+            font-size: 0.95rem;
+            box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
+        }
+
+        .btn-custom-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.4);
+            color: white;
+            background: linear-gradient(135deg, var(--secondary-green) 0%, var(--primary-green) 100%);
+        }
+
+        .btn-custom-secondary {
+            background: #6c757d;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            height: 40px;
+            font-size: 0.95rem;
+        }
+
+        .btn-custom-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+            color: white;
+        }
+
+        .form-control-custom {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            height: 40px !important;
+            min-height: 40px !important;
+            max-height: 40px !important;
+            line-height: 1.4;
+        }
+
+        .form-control-custom:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+            outline: none;
+        }
+
+        .form-control-custom select {
+            height: 40px !important;
+            min-height: 40px !important;
+            max-height: 40px !important;
+        }
+
+        .form-select-custom {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            height: 40px !important;
+            min-height: 40px !important;
+            max-height: 40px !important;
+            line-height: 1.4;
+            background-position: right 0.75rem center;
+            overflow: hidden;
+        }
+
+        .form-select-custom:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+            outline: none;
+        }
+
+        .form-select-custom option {
+            padding: 0.25rem;
+            font-size: 0.95rem;
+        }
+
+        /* Force consistent select box sizing */
+        select.form-select-custom {
+            -webkit-appearance: menulist;
+            -moz-appearance: menulist;
+            appearance: menulist;
+            box-sizing: border-box !important;
+        }
+
+        /* Ensure form alignment */
+        .form-group-aligned {
+            display: flex;
+            flex-direction: column;
+            height: auto;
+        }
+
+        .form-group-aligned .form-label-custom {
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group-aligned .form-control-custom,
+        .form-group-aligned .form-select-custom {
+            flex: 1;
+        }
+
+        /* Input group styling for smaller controls */
+        .input-group .input-group-text {
+            height: 40px;
+            border-radius: 8px 0 0 8px;
+            border: 2px solid #e9ecef;
+            border-right: none;
+            background: #f8f9fa;
+            font-size: 0.95rem;
+        }
+
+        .input-group .form-control-custom {
+            border-radius: 0 8px 8px 0;
+            border-left: none;
+        }
+
+        .input-group .form-control-custom:focus {
+            border-left: 2px solid var(--primary-green);
+            z-index: 3;
+        }
+
+        .form-label-custom {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .table-custom {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .table-custom thead th {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table-custom tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table-custom tbody tr:hover {
+            background: rgba(46, 125, 50, 0.05);
+        }
+
+        .pagination-custom .page-link {
+            color: var(--primary-green);
+            border-color: var(--primary-green);
+            border-radius: 8px;
+            margin: 0 2px;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-custom .page-link:hover {
+            background: var(--primary-green);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .pagination-custom .page-item.active .page-link {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            border-color: var(--primary-green);
+        }
+
+        .alert-custom {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, var(--light-green) 0%, rgba(255, 255, 255, 0.9) 100%);
+            border: 1px solid rgba(46, 125, 50, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(46, 125, 50, 0.2);
+        }
+
+        .stats-card h2 {
+            color: var(--primary-green);
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin: 0;
+        }
+
+        .stats-card p {
+            color: #6c757d;
+            font-weight: 500;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6c757d;
+        }
+
+        .empty-state h4 {
+            color: #495057;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">💰 Expense Tracker</a>
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <i class="fas fa-wallet me-2"></i>Expense Tracker
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                        <a class="nav-link" href="{% url 'dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'expense_list' %}">Expenses</a>
+                        <a class="nav-link" href="{% url 'expense_list' %}">
+                            <i class="fas fa-list me-1"></i>Expenses
+                        </a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <span class="navbar-text me-3">Hi, {{ user.first_name }}!!</span>
+                            <span class="navbar-text me-3">
+                                <i class="fas fa-user me-1"></i>Hi, {{ user.first_name|default:user.username }}!
+                            </span>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                            <a class="nav-link" href="{% url 'logout' %}">
+                                <i class="fas fa-sign-out-alt me-1"></i>Logout
+                            </a>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
@@ -41,7 +366,7 @@
         </div>
     </nav>
 
-    <main class="container mt-4">
+    <main class="container main-content">
         {% block content %}{% endblock %}
     </main>
 

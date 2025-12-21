@@ -7,8 +7,11 @@ class ExpenseForm(forms.ModelForm):
         model = Expense
         fields = ['category', 'subcategory', 'amount', 'description', 'date']
         widgets = {
-            'date': forms.DateInput(attrs={'type': 'date'}),
-            'description': forms.TextInput(attrs={'placeholder': 'Optional description'}),
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control-custom'}),
+            'description': forms.TextInput(attrs={'placeholder': 'Optional description', 'class': 'form-control-custom'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control-custom', 'step': '0.01', 'min': '0'}),
+            'category': forms.Select(attrs={'class': 'form-select-custom'}),
+            'subcategory': forms.Select(attrs={'class': 'form-select-custom'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -45,11 +48,18 @@ class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
         fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control-custom'}),
+        }
 
 class SubcategoryForm(forms.ModelForm):
     class Meta:
         model = Subcategory
         fields = ['category', 'name']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control-custom'}),
+            'category': forms.Select(attrs={'class': 'form-select-custom'}),
+        }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

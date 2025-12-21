@@ -4,31 +4,61 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Categories</h2>
-    <a href="{% url 'category_create' %}" class="btn btn-primary">Add Category</a>
+    <h1 class="mb-0">
+        <i class="fas fa-tags me-3 text-success"></i>Categories
+    </h1>
+    <a href="{% url 'category_create' %}" class="btn btn-custom-primary">
+        <i class="fas fa-plus me-2"></i>Add Category
+    </a>
 </div>
 
 {% if categories %}
-    <div class="row">
+    <div class="row g-4">
         {% for category in categories %}
-        <div class="col-md-4 mb-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">{{ category.name }}</h5>
-                    <p class="card-text text-muted">Created {{ category.created_at|date:"M d, Y" }}</p>
-                    <p class="card-text">
-                        <small class="text-muted">{{ category.subcategories.count }} subcategories</small>
-                    </p>
+        <div class="col-md-6 col-lg-4">
+            <div class="card-custom h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="bg-success-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fas fa-tag fa-lg text-success"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1 fw-bold">{{ category.name }}</h5>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>Created {{ category.created_at|date:"M d, Y" }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-tags me-2 text-info"></i>
+                            <span class="fw-semibold">{{ category.subcategories.count }} subcategories</span>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'category_update' category.pk %}" class="btn btn-sm btn-outline-primary rounded-start">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'category_delete' category.pk %}" class="btn btn-sm btn-outline-danger rounded-end">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
 {% else %}
-    <div class="text-center mt-5">
-        <h4 class="text-muted">No categories yet</h4>
-        <p class="text-muted">Create categories to organize your expenses!</p>
-        <a href="{% url 'category_create' %}" class="btn btn-primary">Add Your First Category</a>
+    <div class="empty-state">
+        <i class="fas fa-tag fa-4x text-muted mb-4"></i>
+        <h4>No categories yet</h4>
+        <p>Create categories to organize your expenses!</p>
+        <a href="{% url 'category_create' %}" class="btn btn-custom-primary btn-lg">
+            <i class="fas fa-plus me-2"></i>Add Your First Category
+        </a>
     </div>
 {% endif %}
 {% endblock %}
