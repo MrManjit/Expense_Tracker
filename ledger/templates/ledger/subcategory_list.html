@@ -4,31 +4,63 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Subcategories</h2>
-    <a href="{% url 'subcategory_create' %}" class="btn btn-primary">Add Subcategory</a>
+    <h1 class="mb-0">
+        <i class="fas fa-tags me-3 text-success"></i>Subcategories
+    </h1>
+    <a href="{% url 'subcategory_create' %}" class="btn btn-custom-primary">
+        <i class="fas fa-plus me-2"></i>Add Subcategory
+    </a>
 </div>
 
 {% if subcategories %}
-    <div class="row">
+    <div class="row g-4">
         {% for subcategory in subcategories %}
-        <div class="col-md-4 mb-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">{{ subcategory.name }}</h5>
-                    <p class="card-text">
-                        <strong>Category:</strong> {{ subcategory.category.name }}
-                    </p>
-                    <p class="card-text text-muted">Created {{ subcategory.created_at|date:"M d, Y" }}</p>
+        <div class="col-md-6 col-lg-4">
+            <div class="card-custom h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="bg-info-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fas fa-tags fa-lg text-info"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1 fw-bold">{{ subcategory.name }}</h5>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>Created {{ subcategory.created_at|date:"M d, Y" }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-tag me-2 text-success"></i>
+                            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
+                                {{ subcategory.category.name }}
+                            </span>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'subcategory_update' subcategory.pk %}" class="btn btn-sm btn-outline-primary rounded-start">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'subcategory_delete' subcategory.pk %}" class="btn btn-sm btn-outline-danger rounded-end">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
 {% else %}
-    <div class="text-center mt-5">
-        <h4 class="text-muted">No subcategories yet</h4>
-        <p class="text-muted">Create subcategories to further organize your expenses!</p>
-        <a href="{% url 'subcategory_create' %}" class="btn btn-primary">Add Your First Subcategory</a>
+    <div class="empty-state">
+        <i class="fas fa-tags fa-4x text-muted mb-4"></i>
+        <h4>No subcategories yet</h4>
+        <p>Create subcategories to further organize your expenses!</p>
+        <a href="{% url 'subcategory_create' %}" class="btn btn-custom-primary btn-lg">
+            <i class="fas fa-plus me-2"></i>Add Your First Subcategory
+        </a>
     </div>
 {% endif %}
 {% endblock %}
