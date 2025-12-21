@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <i class="fas fa-calendar-day me-2"></i>
                 <h5 class="mb-0">Today's Expenses</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body scrollable-content">
                 {% if today_expenses %}
                     <div class="list-group list-group-flush">
                         {% for expense in today_expenses %}
@@ -295,7 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <i class="fas fa-history me-2"></i>
                 <h5 class="mb-0">Expenses for {{ selected_month_name }} {{ selected_year }}</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body scrollable-content">
                 {% if month_expenses %}
                     <div class="list-group list-group-flush">
                         {% for expense in month_expenses %}
