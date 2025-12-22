@@ -7,8 +7,8 @@ python manage.py migrate --noinput
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-echo "Creating superuser if not exists........."
-python manage.py createsuperuser --noinput || true
+echo "Ensuring superuser exists..."
+python manage.py ensure_superuser
 
 echo "Starting Gunicorn..."
 exec gunicorn Expense_Tracker.wsgi:application \
