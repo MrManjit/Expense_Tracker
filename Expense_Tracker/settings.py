@@ -37,6 +37,7 @@ CSRF_COOKIE_SECURE = not DEBUG
 # Application definition
 
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',  # WhiteNoise for static files in production
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,8 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'ledger',
-    'whitenoise.runserver_nostatic',  # WhiteNoise for static files in production
+    'ledger'
 ]
 
 # Authentication settings

@@ -22,11 +22,25 @@ Including another URLconf
 # ]
 
 
+# from django.contrib import admin
+# from django.urls import path, include
+
+# urlpatterns = [
+#     path("admin/", admin.site.urls),
+#     path("accounts/", include("django.contrib.auth.urls")),  # login/logout/password views
+#     path("", include("ledger.urls")),
+# ]
+
 from django.contrib import admin
+from django.http import HttpResponse
 from django.urls import path, include
 
+def health(_):
+    return HttpResponse("ok", status=200)
+
 urlpatterns = [
+    path("health", health),                 # <-- always 200
     path("admin/", admin.site.urls),
-    path("accounts/", include("django.contrib.auth.urls")),  # login/logout/password views
+    path("accounts/", include("django.contrib.auth.urls")),
     path("", include("ledger.urls")),
 ]
