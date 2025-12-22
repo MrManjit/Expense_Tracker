@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  expense_tracker:
+    build: .
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    environment:
+      - DEBUG=True
+      - DJANGO_SETTINGS_MODULE=Expense_Tracker.settings
+      - SECRET_KEY=development-secret-key-change-in-production
+      - PORT=${PORT:-8000}
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+      - CSRF_TRUSTED_ORIGINS=http://localhost:${PORT:-8000},http://127.0.0.1:${PORT:-8000}
+    volumes:
+      - .:/app
+      - /app/__pycache__
+      - ./db.sqlite3:/app/db.sqlite3
+      - ./staticfiles:/app/staticfiles
+    command: >
+      sh -c "
+        python manage.py migrate --noinput &&
+        python manage.py collectstatic --noinput &&
+        python manage.py runserver 0.0.0.0:\${PORT:-8000}
+      "
+    restart: unless-stopped
+
+  # Optional: Database service (if you want to use PostgreSQL in future)
+  # db:
+  #   image: postgres:13
+  #   environment:
+  #     POSTGRES_DB: expensetracker
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+
+# volumes:
+#   postgres_data:

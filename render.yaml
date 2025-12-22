@@ -22,19 +22,12 @@
 services:
   - type: web
     name: expense-tracker
-    runtime: python
+    runtime: docker
     plan: free
-    buildCommand: >
-      pip install -r requirements.txt &&
-      python manage.py collectstatic --noinput &&
-      python manage.py migrate --noinput
-    startCommand: >
-      gunicorn Expense_Tracker.wsgi:application --bind 0.0.0.0:$PORT
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: Expense_Tracker.settings
-      - key: PYTHON_VERSION
-        value: 3.11.9
       - key: DEBUG
         value: "False"
       - key: SECRET_KEY
@@ -45,5 +38,7 @@ services:
           name: expense-tracker
           property: host
       - key: CSRF_TRUSTED_ORIGINS
-        # Use your actual hostname if this var isn't supported in your UI
-        value: https://expense-tracker.onrender.com
+        fromService:
+          type: web
+          name: expense-tracker
+          property: host
