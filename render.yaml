@@ -33,12 +33,6 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
-        fromService:
-          type: web
-          name: expense-tracker
-          property: host
+        value: expense-tracker-sngg.onrender.com,localhost,127.0.0.1
       - key: CSRF_TRUSTED_ORIGINS
-        fromService:
-          type: web
-          name: expense-tracker
-          property: host
+        value: https://expense-tracker-sngg.onrender.com,http://localhost:8000,http://127.0.0.1:8000
