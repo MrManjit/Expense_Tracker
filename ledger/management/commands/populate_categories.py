@@ -20,6 +20,7 @@ class Command(BaseCommand):
                 'Taxi/Rideshare',
                 'Parking',
                 'Car Maintenance',
+                'Bike Maintenance',
                 'Car Insurance',
             ],
             'Housing': [
@@ -75,6 +76,7 @@ class Command(BaseCommand):
                 'Cosmetics',
                 'Clothing',
                 'Toiletries',
+                'Optical Care Products',
             ],
             'Insurance': [
                 'Health Insurance',
@@ -91,11 +93,15 @@ class Command(BaseCommand):
                 'Gifts',
                 'Charity',
                 'Donations',
+                'Party Items',
             ],
             'Other': [
                 'Miscellaneous',
                 'Unexpected Expenses',
             ],
+            'Religious Products': [
+                'Pooja Essentials',
+            ]
         }
 
         created_count = 0

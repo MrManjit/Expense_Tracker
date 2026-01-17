@@ -81,6 +81,7 @@ def migrate_to_global_categories(apps, schema_editor):
             'Cosmetics',
             'Clothing',
             'Toiletries',
+            'Optical Care Products',
         ],
         'Insurance': [
             'Health Insurance',
@@ -97,11 +98,15 @@ def migrate_to_global_categories(apps, schema_editor):
             'Gifts',
             'Charity',
             'Donations',
+            'Party Items',
         ],
         'Other': [
             'Miscellaneous',
             'Unexpected Expenses',
         ],
+        'Religious Products': [
+            'Pooja Essentials',
+            ]
     }
     
     # Create global categories and subcategories

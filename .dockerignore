@@ -1,85 +1,15 @@
-# Git files
-.git
-.gitignore
-
-# Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-
-env/
-venv.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-.git
-.mypy_cache
-.pytest_cache
-.hypothesis
-
-# Django
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-media/
-staticfiles/
-
-# IDE
+*.pyc
+*.pyo
+*.pyd
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Documentation
-*.md
-!README.md
-
-# Docker
-Dockerfile
-.dockerignore
-docker-compose.yml
-docker-compose*.yml
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Environment files
-.env
-.env.local
-.env.development
-.env.test
-.env.production
-
-# Misc
-*.pid
-*.seed
-*.pid.lock
-.npm
-.eslintcache
-.nyc_output
-.parcel-cache
-.cache
-.temp
-.tmp
+.git/
+.gitignore
+dist/
+build/
+.cache/
+node_modules/
+*.log
+media/
+staticfiles/        # if you collect static at runtime or via CI

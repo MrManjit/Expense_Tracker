@@ -85,6 +85,7 @@ USER app
 
 # EXPOSE must be a literal number; Render will still pass $PORT at runtime to Gunicorn
 EXPOSE 8000
+EXPOSE 8888
 
 # Healthcheck: hit the /health endpoint we added
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
