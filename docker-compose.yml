@@ -77,6 +77,48 @@
 # #   postgres_data:
 
 # Robust dev setup: adds DB readiness check, automatic migrations before server, and expects environment from .env, making startup sequencing safer.
+services:
+  db:
+    image: postgres:16
+    container_name: postgres_db_local
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: manjitsingh
+      POSTGRES_PASSWORD: ${DB_PASSWORD}          # read from .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: expense_tracker_web_local
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    env_file:
+      - .env
+    environment:
+      # Explicitly set DB host to the service name, not localhost
+      DB_HOST: db
+      DB_PORT: 5432
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app  # optional for live code reload during dev (if you prefer)
+
+volumes:
+  pgdata:
+
 
 # services:
 #   db:
@@ -92,7 +134,7 @@
 #     volumes:
 #       - pgdata:/var/lib/postgresql/data
 #     healthcheck:
-#       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+#       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER-manjitsingh} -d ${POSTGRES_DB-mydatabase}"]
 #       interval: 5s
 #       timeout: 3s
 #       retries: 20
@@ -102,133 +144,30 @@
 #       context: .
 #       dockerfile: Dockerfile
 #     container_name: expense_tracker_web_local
-#     command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+#     restart: unless-stopped
 #     env_file:
 #       - .env
 #     environment:
-#       # Explicitly set DB host to the service name, not localhost
+#       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE}   # e.g., Expense_Tracker.settings
+#       PYTHONPATH: ${PYTHONPATH}                           # e.g., /app
 #       DB_HOST: db
 #       DB_PORT: 5432
+#       DB_NAME: ${DB_NAME}
+#       DB_USER: ${DB_USER}
+#       DB_PASSWORD: ${DB_PASSWORD}
+#     command:
+#       - bash
+#       - -lc
+#       - |
+#         set -e
+#         python manage.py migrate --noinput
+#         python manage.py runserver 0.0.0.0:8000
 #     ports:
 #       - "8000:8000"
 #     depends_on:
 #       db:
 #         condition: service_healthy
 #     volumes:
-#       - .:/app  # optional for live code reload during dev (if you prefer)
-
+#       - .:/app
 # volumes:
 #   pgdata:
-
-
-services:
-  db:
-    image: postgres:16
-    container_name: postgres_db_local
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: mydatabase
-      POSTGRES_USER: manjitsingh
-      POSTGRES_PASSWORD: ${DB_PASSWORD}          # read from .env
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER-manjitsingh} -d ${POSTGRES_DB-mydatabase}"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: expense_tracker_web_local
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE}   # e.g., Expense_Tracker.settings
-      PYTHONPATH: ${PYTHONPATH}                           # e.g., /app
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-    command:
-      - bash
-      - -lc
-      - |
-        set -e
-        python manage.py migrate --noinput
-        python manage.py runserver 0.0.0.0:8000
-    ports:
-      - "8000:8000"
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - .:/app
-
-  notebook:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: expense_tracker_notebook_local
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE}   # e.g., Expense_Tracker.settings
-      PYTHONPATH: ${PYTHONPATH}                           # e.g., /app
-      DB_HOST: db
-      DB_PORT: 5432
-      JUPYTER_TOKEN: ${JUPYTER_TOKEN}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-    command:
-      - bash
-      - -lc
-      - |
-        set -e
-
-        # 1) Apply migrations (Django context ready for notebooks)
-        python manage.py migrate --noinput
-
-        # 2) Install a plain Python kernel
-        python -m ipykernel install --user --name=python --display-name='Python (Local)'
-
-        # 3) Create a Django-aware kernelspec (NO blocking)
-        mkdir -p /root/.local/share/jupyter/kernels/django-expense-tracker
-        cat > /root/.local/share/jupyter/kernels/django-expense-tracker/kernel.json <<JSON
-        {
-          "argv": [
-            "python",
-            "-m",
-            "ipykernel_launcher",
-            "-f",
-            "{connection_file}"
-          ],
-          "display_name": "Django (Expense Tracker)",
-          "language": "python",
-          "env": {
-            "DJANGO_SETTINGS_MODULE": "${DJANGO_SETTINGS_MODULE}",
-            "PYTHONPATH": "${PYTHONPATH}"
-          }
-        }
-        JSON
-
-        # 4) Start JupyterLab
-        jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.token=${JUPYTER_TOKEN}
-    ports:
-      - "8888:8888"
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - .:/app
-
-volumes:
-  pgdata:
