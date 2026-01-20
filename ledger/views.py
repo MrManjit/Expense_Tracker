@@ -334,6 +334,16 @@ class ExpenseListView(LoginRequiredMixin, TemplateView):
             'total_categories': total_categories,
             'total_subcategories': total_subcategories,
         })
+# Add `pivot_data` for your template
+        context['pivot_data'] = {
+            'data': final_data,
+            'month_names': month_names,
+            'selected_year': selected_year,
+            'year_options': year_options,
+            'overall_total': overall_total,
+            'total_categories': total_categories,
+            'total_subcategories': total_subcategories,
+        }
         return context
 # --------------------------------------------------------------------------------------
 
