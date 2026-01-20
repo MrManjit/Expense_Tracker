@@ -51,6 +51,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path, include
 from django.views.generic import RedirectView
+from ledger.views import health
 
 urlpatterns = [
     # Custom admin logout that redirects back to admin login
@@ -62,6 +63,7 @@ urlpatterns = [
 
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),  # user-facing login/logout
+    path("healthz", health, name="healthz"),
     path("", include("ledger.urls")),
     path("", RedirectView.as_view(pattern_name="dashboard", permanent=False)),
 ]

@@ -13,45 +13,141 @@ from django.http import HttpResponse
 from django.utils import timezone
 import json
 
+from django.views.decorators.http import require_http_methods
+from django.views.generic import TemplateView
+from django.db.models.functions import ExtractMonth
+
+# --------------------------------------------------------------------------------------
+
+# @login_required
+# def dashboard(request):
+#     today = date.today()
+    
+#     # Get filter parameters from request
+#     selected_year = request.GET.get('year', today.year)
+#     selected_month = request.GET.get('month', today.month)
+    
+#     try:
+#         selected_year = int(selected_year)
+#         selected_month = int(selected_month)
+#     except (ValueError, TypeError):
+#         selected_year = today.year
+#         selected_month = today.month
+    
+#     # Current month expenses (based on filter or current month)
+#     month_expenses = Expense.objects.filter(
+#         user=request.user, 
+#         date__year=selected_year, 
+#         date__month=selected_month
+#     )
+#     total_month = month_expenses.aggregate(total=Sum('amount'))['total'] or 0
+    
+#     # Today's expenses (only if current month/year is selected)
+#     if selected_year == today.year and selected_month == today.month:
+#         today_expenses = Expense.objects.filter(user=request.user, date=today)
+#         total_today = today_expenses.aggregate(total=Sum('amount'))['total'] or 0
+#     else:
+#         today_expenses = Expense.objects.none()
+#         total_today = 0
+    
+#     # Total yearly expenses
+#     year_expenses = Expense.objects.filter(
+#         user=request.user, 
+#         date__year=selected_year
+#     )
+#     total_year = year_expenses.aggregate(total=Sum('amount'))['total'] or 0
+    
+#     # Handle quick add
+#     if request.method == 'POST':
+#         form = ExpenseForm(request.POST, user=request.user)
+#         if form.is_valid():
+#             expense = form.save(commit=False)
+#             expense.user = request.user
+#             expense.save()
+#             return redirect('dashboard')
+#     else:
+#         form = ExpenseForm(initial={'date': today}, user=request.user)
+    
+#     # Generate year options (current year and previous 5 years)
+#     year_options = []
+#     for year in range(today.year, today.year - 6, -1):
+#         year_options.append(year)
+    
+#     # Generate month options
+#     import calendar
+#     month_options = []
+#     for month in range(1, 13):
+#         month_options.append((month, calendar.month_name[month]))
+    
+#     # Get selected month name
+#     selected_month_name = calendar.month_name[selected_month]
+    
+#     context = {
+#         'total_month': total_month,
+#         'total_today': total_today,
+#         'total_year': total_year,
+#         'today_expenses': today_expenses,
+#         'month_expenses': month_expenses.order_by('-date', '-created_at')[:10],  # Recent expenses for selected month
+#         'form': form,
+#         'today': today,
+#         'selected_year': selected_year,
+#         'selected_month': selected_month,
+#         'selected_month_name': selected_month_name,
+#         'year_options': year_options,
+#         'month_options': month_options,
+#         'subcategory_category_map': getattr(form, 'subcategory_category_map', {}),
+#     }
+#     return render(request, 'ledger/dashboard.html', context)
+
+@require_http_methods(["GET", "HEAD", "POST"])   # ✅ HEAD-safe, POST for quick-add
 @login_required
 def dashboard(request):
     today = date.today()
-    
-    # Get filter parameters from request
+
+    # Parse filters defensively
     selected_year = request.GET.get('year', today.year)
     selected_month = request.GET.get('month', today.month)
-    
     try:
         selected_year = int(selected_year)
         selected_month = int(selected_month)
     except (ValueError, TypeError):
         selected_year = today.year
         selected_month = today.month
-    
-    # Current month expenses (based on filter or current month)
-    month_expenses = Expense.objects.filter(
-        user=request.user, 
-        date__year=selected_year, 
-        date__month=selected_month
+
+    # ✅ Month queryset: select_related to avoid N+1 in templates
+    month_qs = (
+        Expense.objects
+        .filter(user=request.user, date__year=selected_year, date__month=selected_month)
+        .select_related('category', 'subcategory')  # assumes FK names on Expense
+        .only('id', 'amount', 'description', 'date', 'created_at',
+              'category__id', 'category__name',
+              'subcategory__id', 'subcategory__name')
     )
-    total_month = month_expenses.aggregate(total=Sum('amount'))['total'] or 0
-    
-    # Today's expenses (only if current month/year is selected)
+    total_month = month_qs.aggregate(total=Sum('amount'))['total'] or 0
+
+    # Today's expenses only if month/year matches today
     if selected_year == today.year and selected_month == today.month:
-        today_expenses = Expense.objects.filter(user=request.user, date=today)
-        total_today = today_expenses.aggregate(total=Sum('amount'))['total'] or 0
+        today_qs = (
+            Expense.objects
+            .filter(user=request.user, date=today)
+            .select_related('category', 'subcategory')
+            .only('id', 'amount', 'description', 'date', 'created_at',
+                  'category__id', 'category__name',
+                  'subcategory__id', 'subcategory__name')
+        )
+        total_today = today_qs.aggregate(total=Sum('amount'))['total'] or 0
     else:
-        today_expenses = Expense.objects.none()
+        today_qs = Expense.objects.none()
         total_today = 0
-    
-    # Total yearly expenses
-    year_expenses = Expense.objects.filter(
-        user=request.user, 
-        date__year=selected_year
+
+    # Year total (aggregate only)
+    total_year = (
+        Expense.objects
+        .filter(user=request.user, date__year=selected_year)
+        .aggregate(total=Sum('amount'))['total'] or 0
     )
-    total_year = year_expenses.aggregate(total=Sum('amount'))['total'] or 0
-    
-    # Handle quick add
+
+    # Handle quick-add form
     if request.method == 'POST':
         form = ExpenseForm(request.POST, user=request.user)
         if form.is_valid():
@@ -61,27 +157,21 @@ def dashboard(request):
             return redirect('dashboard')
     else:
         form = ExpenseForm(initial={'date': today}, user=request.user)
-    
-    # Generate year options (current year and previous 5 years)
-    year_options = []
-    for year in range(today.year, today.year - 6, -1):
-        year_options.append(year)
-    
-    # Generate month options
-    import calendar
-    month_options = []
-    for month in range(1, 13):
-        month_options.append((month, calendar.month_name[month]))
-    
-    # Get selected month name
+
+    # Year options: current and previous 5
+    year_options = list(range(today.year, today.year - 6, -1))
+
+    # Month options
+    month_options = [(m, calendar.month_name[m]) for m in range(1, 13)]
     selected_month_name = calendar.month_name[selected_month]
-    
+
     context = {
         'total_month': total_month,
         'total_today': total_today,
         'total_year': total_year,
-        'today_expenses': today_expenses,
-        'month_expenses': month_expenses.order_by('-date', '-created_at')[:10],  # Recent expenses for selected month
+        'today_expenses': today_qs,
+        # ✅ Restrict the list to a small recent slice and avoid extra fetches
+        'month_expenses': month_qs.order_by('-date', '-created_at')[:10],
         'form': form,
         'today': today,
         'selected_year': selected_year,
@@ -92,88 +182,160 @@ def dashboard(request):
         'subcategory_category_map': getattr(form, 'subcategory_category_map', {}),
     }
     return render(request, 'ledger/dashboard.html', context)
+# --------------------------------------------------------------------------------------
 
-class ExpenseListView(LoginRequiredMixin, ListView):
-    model = Expense
-    # template_name = 'ledger/expense_list.html'
-    # paginate_by = 20
-    # context_object_name = 'expenses'
-    template_name = 'ledger/expense_pivot.html'
-    context_object_name = 'pivot_data'
+# ------------------------------------------------------------------------------------------------------
+
+# class ExpenseListView(LoginRequiredMixin, ListView):
+#     model = Expense
+#     # template_name = 'ledger/expense_list.html'
+#     # paginate_by = 20
+#     # context_object_name = 'expenses'
+#     template_name = 'ledger/expense_pivot.html'
+#     context_object_name = 'pivot_data'
     
-    def get_queryset(self):
-        # return Expense.objects.filter(user=self.request.user) Earlier code for expense_list.html
-        # Get selected year (default to current year)
+#     def get_queryset(self):
+#         # return Expense.objects.filter(user=self.request.user) Earlier code for expense_list.html
+#         # Get selected year (default to current year)
+#         today = date.today()
+#         selected_year = self.request.GET.get('year', today.year)
+#         try:
+#             selected_year = int(selected_year)
+#         except (ValueError, TypeError):
+#             selected_year = today.year
+        
+#         # Get all expenses for the selected year
+#         expenses = Expense.objects.filter(
+#             user=self.request.user,
+#             date__year=selected_year
+#         )
+        
+#         # Create pivot data structure
+#         pivot_data = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
+#         row_totals = defaultdict(float)
+        
+#         # Aggregate expenses by category, subcategory, and month
+#         for expense in expenses:
+#             category_name = expense.category.name if expense.category else 'Uncategorized'
+#             subcategory_name = expense.subcategory.name if expense.subcategory else 'Uncategorized'
+#             month = expense.date.month
+#             amount = float(expense.amount)
+            
+#             pivot_data[category_name][subcategory_name][month] += amount
+#             row_totals[f"{category_name} > {subcategory_name}"] += amount
+        
+#         # Prepare month names
+#         month_names = []
+#         for month in range(1, 13):
+#             month_names.append(calendar.month_name[month])
+        
+#         # Prepare final data structure
+#         final_data = []
+#         for category, subcategories in pivot_data.items():
+#             for subcategory, months in subcategories.items():
+#                 row_data = {
+#                     'category': category,
+#                     'subcategory': subcategory,
+#                     'months': [],
+#                     'total': 0
+#                 }
+                
+#                 # Add monthly amounts
+#                 for month in range(1, 13):
+#                     amount = months.get(month, 0)
+#                     row_data['months'].append(amount)
+#                     row_data['total'] += amount
+                
+#                 final_data.append(row_data)
+        
+#         # Sort data by category and subcategory
+#         final_data.sort(key=lambda x: (x['category'], x['subcategory']))
+        
+#         # Calculate overall total for all subcategories
+#         overall_total = sum(row['total'] for row in final_data)
+        
+#         # Calculate additional statistics
+#         total_categories = len(set(row['category'] for row in final_data))
+#         total_subcategories = len(final_data)
+        
+#         return {
+#             'data': final_data,
+#             'month_names': month_names,
+#             'selected_year': selected_year,
+#             'year_options': list(range(today.year, today.year - 6, -1)),
+#             'overall_total': overall_total,
+#             'total_categories': total_categories,
+#             'total_subcategories': total_subcategories
+#         }
+
+
+class ExpenseListView(LoginRequiredMixin, TemplateView):
+    template_name = 'ledger/expense_pivot.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         today = date.today()
+
+        # Parse year safely
         selected_year = self.request.GET.get('year', today.year)
         try:
             selected_year = int(selected_year)
         except (ValueError, TypeError):
             selected_year = today.year
-        
-        # Get all expenses for the selected year
-        expenses = Expense.objects.filter(
-            user=self.request.user,
-            date__year=selected_year
+
+        # ✅ DB-side aggregation: one query
+        # Produces rows: category_name, subcategory_name, month (1-12), total
+        qs = (
+            Expense.objects
+            .filter(user=self.request.user, date__year=selected_year)
+            .values('category__name', 'subcategory__name')
+            .annotate(month=ExtractMonth('date'))
+            .values('category__name', 'subcategory__name', 'month')
+            .annotate(total=Sum('amount'))
+            .order_by('category__name', 'subcategory__name', 'month')
         )
-        
-        # Create pivot data structure
-        pivot_data = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
-        row_totals = defaultdict(float)
-        
-        # Aggregate expenses by category, subcategory, and month
-        for expense in expenses:
-            category_name = expense.category.name if expense.category else 'Uncategorized'
-            subcategory_name = expense.subcategory.name if expense.subcategory else 'Uncategorized'
-            month = expense.date.month
-            amount = float(expense.amount)
-            
-            pivot_data[category_name][subcategory_name][month] += amount
-            row_totals[f"{category_name} > {subcategory_name}"] += amount
-        
-        # Prepare month names
-        month_names = []
-        for month in range(1, 13):
-            month_names.append(calendar.month_name[month])
-        
-        # Prepare final data structure
+
+        # Build pivot rows
+        month_names = [calendar.month_name[m] for m in range(1, 13)]
+        # {(cat, subcat): [12 monthly totals]}
+        from collections import defaultdict
+        grid = defaultdict(lambda: [0.0] * 12)
+
+        for row in qs:
+            cat = row['category__name'] or 'Uncategorized'
+            sub = row['subcategory__name'] or 'Uncategorized'
+            m = row['month'] or 0
+            if 1 <= m <= 12:
+                grid[(cat, sub)][m - 1] += float(row['total'] or 0)
+
         final_data = []
-        for category, subcategories in pivot_data.items():
-            for subcategory, months in subcategories.items():
-                row_data = {
-                    'category': category,
-                    'subcategory': subcategory,
-                    'months': [],
-                    'total': 0
-                }
-                
-                # Add monthly amounts
-                for month in range(1, 13):
-                    amount = months.get(month, 0)
-                    row_data['months'].append(amount)
-                    row_data['total'] += amount
-                
-                final_data.append(row_data)
-        
-        # Sort data by category and subcategory
+        for (cat, sub), months in grid.items():
+            final_data.append({
+                'category': cat,
+                'subcategory': sub,
+                'months': months,
+                'total': sum(months),
+            })
+
+        # Sort rows by category, then subcategory
         final_data.sort(key=lambda x: (x['category'], x['subcategory']))
-        
-        # Calculate overall total for all subcategories
-        overall_total = sum(row['total'] for row in final_data)
-        
-        # Calculate additional statistics
-        total_categories = len(set(row['category'] for row in final_data))
+
+        overall_total = sum(r['total'] for r in final_data)
+        total_categories = len({r['category'] for r in final_data})
         total_subcategories = len(final_data)
-        
-        return {
+        year_options = list(range(today.year, today.year - 6, -1))
+
+        context.update({
             'data': final_data,
             'month_names': month_names,
             'selected_year': selected_year,
-            'year_options': list(range(today.year, today.year - 6, -1)),
+            'year_options': year_options,
             'overall_total': overall_total,
             'total_categories': total_categories,
-            'total_subcategories': total_subcategories
-        }
+            'total_subcategories': total_subcategories,
+        })
+        return context
+# --------------------------------------------------------------------------------------
 
 class ExpenseCreateView(LoginRequiredMixin, CreateView):
     model = Expense
@@ -400,3 +562,7 @@ def test_view(request):
     }
 
     return render(request, "ledger/test.html", context)
+
+def health(request):
+    # Must be super lightweight; no DB, no cache misses, no auth
+    return HttpResponse("ok", content_type="text/plain")
