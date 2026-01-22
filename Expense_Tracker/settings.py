@@ -181,6 +181,6 @@ WHITENOISE_USE_FINDERS = False
 WHITENOISE_AUTOREFRESH = False
 
 # Session lifetime (e.g., 60 minutes) Also change this in middleware.py and base.html
-SESSION_COOKIE_AGE = 1 * 60  # seconds
+SESSION_COOKIE_AGE = 60 * 60  # seconds
 SESSION_SAVE_EVERY_REQUEST = True  # extend session on each request
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # optional; keep session until age

@@ -478,7 +478,7 @@
 <script>
 (function() {
   // Keep these in sync with server config/middleware
-  const IDLE_MINUTES = 1;   // same as middleware idle_timeout and aligned with SESSION_COOKIE_AGE
+  const IDLE_MINUTES = 60;   // same as middleware idle_timeout and aligned with SESSION_COOKIE_AGE
   const WARN_SECONDS = 60;   // show the popup 60s before the cut-off
   const KEEPALIVE_URL = "{% url 'keepalive' %}";
   const LOGOUT_URL = "{% url 'logout' %}";

@@ -14,7 +14,7 @@ class IdleSessionTimeoutMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
         # default 60 minutes; override with env var if needed
-        self.idle_timeout = timedelta(minutes=1)
+        self.idle_timeout = timedelta(minutes=60)
 
     def __call__(self, request):
         if request.user.is_authenticated:
