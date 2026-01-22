@@ -454,5 +454,126 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% if user.is_authenticated %}
+<!-- Idle Timeout Modal -->
+<div class="modal fade" id="idleModal" tabindex="-1" aria-labelledby="idleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0">
+      <div class="modal-header bg-warning-subtle">
+        <h5 class="modal-title" id="idleModalLabel">Session Expiring</h5>
+      </div>
+      <div class="modal-body">
+        You’ve been inactive for a while. For your security, you’ll be logged out in
+        <strong><span id="idle-countdown">60</span>s</strong>.
+      </div>
+      <div class="modal-footer">
+        <button id="stay-logged-in" type="button" class="btn btn-primary">I'm still here</button>
+        <a href="{% url 'logout' %}" class="btn btn-outline-secondary">Logout now</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // Keep these in sync with server config/middleware
+  const IDLE_MINUTES = 1;   // same as middleware idle_timeout and aligned with SESSION_COOKIE_AGE
+  const WARN_SECONDS = 60;   // show the popup 60s before the cut-off
+  const KEEPALIVE_URL = "{% url 'keepalive' %}";
+  const LOGOUT_URL = "{% url 'logout' %}";
+
+  let lastActivity = Date.now();
+  let warnTicker = null;
+  let countdownTimer = null;
+  let remaining = WARN_SECONDS;
+
+  // Track activity
+  ['click','keydown','mousemove','scroll','touchstart'].forEach(evt => {
+    window.addEventListener(evt, () => { lastActivity = Date.now(); }, { passive: true });
+  });
+
+  function showModal() {
+    const el = document.getElementById('idleModal');
+    if (!el) return;
+    remaining = WARN_SECONDS;
+    updateCountdown();
+    if (window.bootstrap && bootstrap.Modal) {
+      bootstrap.Modal.getOrCreateInstance(el).show();
+    } else {
+      el.style.display = 'block';
+    }
+  }
+
+  function hideModal() {
+    const el = document.getElementById('idleModal');
+    if (!el) return;
+    if (window.bootstrap && bootstrap.Modal) {
+      bootstrap.Modal.getOrCreateInstance(el).hide();
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  function updateCountdown() {
+    const el = document.getElementById('idle-countdown');
+    if (el) el.textContent = remaining.toString();
+  }
+
+  function startCountdown() {
+    stopCountdown();
+    countdownTimer = setInterval(() => {
+      remaining -= 1;
+      updateCountdown();
+      if (remaining <= 0) {
+        window.location.href = LOGOUT_URL;
+      }
+    }, 1000);
+  }
+
+  function stopCountdown() {
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+    }
+  }
+
+  async function keepAlive() {
+    try {
+      await fetch(KEEPALIVE_URL, { credentials: 'same-origin', cache: 'no-store' });
+      lastActivity = Date.now();
+    } catch (e) {
+      console.warn('keepalive failed', e);
+    }
+  }
+
+  function scheduleWarning() {
+    if (warnTicker) clearInterval(warnTicker);
+    warnTicker = setInterval(() => {
+      const msIdle = Date.now() - lastActivity;
+      const msToCutoff = (IDLE_MINUTES * 60 * 1000) - msIdle;
+      if (msToCutoff <= WARN_SECONDS * 1000) {
+        clearInterval(warnTicker);
+        showModal();
+        startCountdown();
+      }
+    }, 10000); // check every 10s
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const stayBtn = document.getElementById('stay-logged-in');
+    if (stayBtn) {
+      stayBtn.addEventListener('click', async () => {
+        await keepAlive();
+        stopCountdown();
+        hideModal();
+        scheduleWarning();
+      });
+    }
+    scheduleWarning();
+  });
+})();
+</script>
+{% endif %}
 </body>
 </html>

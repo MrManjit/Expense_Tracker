@@ -16,6 +16,8 @@ import json
 from django.views.decorators.http import require_http_methods
 from django.views.generic import TemplateView
 from django.db.models.functions import ExtractMonth
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
 # --------------------------------------------------------------------------------------
 
@@ -576,3 +578,9 @@ def test_view(request):
 def health(request):
     # Must be super lightweight; no DB, no cache misses, no auth
     return HttpResponse("ok", content_type="text/plain")
+
+@login_required
+def keepalive(request):
+    # Simply touch the session; Idle middleware will update last_activity
+    # Return remaining time if you want to show a countdown
+    return JsonResponse({"status": "ok"})

@@ -33,4 +33,7 @@ urlpatterns = [
 
     # Health (keep /health for compatibility)
     path('health/', views.health, name='health'),
+    
+    # Keepalive endpoint for session management
+    path('keepalive/', views.keepalive, name='keepalive'),
 ]
