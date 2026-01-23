@@ -9,7 +9,7 @@ import calendar
 from collections import defaultdict
 from .models import Expense, Category, Subcategory
 from .forms import ExpenseForm, CategoryForm, SubcategoryForm
-from django.http import HttpResponse
+from django.http import HttpResponse,  JsonResponse, HttpResponseBadRequest
 from django.utils import timezone
 import json
 
@@ -18,6 +18,14 @@ from django.views.generic import TemplateView
 from django.db.models.functions import ExtractMonth
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+
+from django.conf import settings
+from django.contrib.auth import get_user_model, login
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
+
+from google.oauth2 import id_token
+from google.auth.transport import requests as grequests
 
 # --------------------------------------------------------------------------------------
 
@@ -584,3 +592,92 @@ def keepalive(request):
     # Simply touch the session; Idle middleware will update last_activity
     # Return remaining time if you want to show a countdown
     return JsonResponse({"status": "ok"})
+
+User = get_user_model()
+
+@require_POST
+@csrf_protect
+def google_signin(request):
+    """
+    Verifies Google ID token, upserts a user by email, and logs them in via Django session.
+    Expects JSON body: {"id_token": "<JWT>"}
+    """
+    # Parse JSON
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return HttpResponseBadRequest("Invalid JSON")
+
+    token = data.get("id_token")
+    if not token:
+        return HttpResponseBadRequest("id_token missing")
+
+    if not getattr(settings, "GOOGLE_CLIENT_ID", ""):
+        return JsonResponse({"ok": False, "message": "Server misconfigured: GOOGLE_CLIENT_ID missing"}, status=500)
+
+    try:
+        # Verify signature & claims
+        claims = id_token.verify_oauth2_token(
+            token,
+            grequests.Request(),
+            settings.GOOGLE_CLIENT_ID,
+        )
+
+        # Issuer check
+        if claims.get("iss") not in ["accounts.google.com", "https://accounts.google.com"]:
+            return JsonResponse({"ok": False, "message": "Invalid token issuer"}, status=401)
+
+        # Basic claims
+        email = claims.get("email")
+        email_verified = claims.get("email_verified", False)
+        name = claims.get("name") or ""
+        picture = claims.get("picture")
+        sub = claims.get("sub")  # Stable Google user id as string
+
+        if not email:
+            return JsonResponse({"ok": False, "message": "Email missing from Google token"}, status=400)
+        if not email_verified:
+            return JsonResponse({"ok": False, "message": "Email not verified with Google"}, status=403)
+
+        # (Optional) Restrict to a domain:
+        # hd = claims.get("hd")
+        # if hd != "yourcompany.com":
+        #     return JsonResponse({"ok": False, "message": "Domain not allowed"}, status=403)
+
+        # Upsert user by email
+        first_name = name.split(" ")[0] if name else ""
+        last_name = " ".join(name.split(" ")[1:]) if name and len(name.split(" ")) > 1 else ""
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                "username": email,  # Needed if you use default Django User with required username
+                "first_name": first_name,
+                "last_name": last_name,
+            },
+        )
+
+        # Optionally update names if empty and Google provided them
+        fields_to_update = []
+        if not user.first_name and first_name:
+            user.first_name = first_name
+            fields_to_update.append("first_name")
+        if not user.last_name and last_name:
+            user.last_name = last_name
+            fields_to_update.append("last_name")
+        if fields_to_update:
+            user.save(update_fields=fields_to_update)
+
+        # If you want to persist Google sub / avatar, add a Profile model and store:
+        # profile, _ = Profile.objects.get_or_create(user=user)
+        # profile.google_sub = sub
+        # profile.avatar_url = picture
+        # profile.save()
+
+        # Create Django session
+        login(request, user)
+
+        # Frontend will redirect to dashboard on success
+        return JsonResponse({"ok": True})
+    except Exception as e:
+        # You can log e for debugging in server logs
+        return JsonResponse({"ok": False, "message": f"Invalid token: {str(e)}"}, status=401)

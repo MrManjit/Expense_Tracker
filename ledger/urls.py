@@ -36,4 +36,6 @@ urlpatterns = [
     
     # Keepalive endpoint for session management
     path('keepalive/', views.keepalive, name='keepalive'),
+
+    path("auth/google/", views.google_signin, name="google_signin"),
 ]

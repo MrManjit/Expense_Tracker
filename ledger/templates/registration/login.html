@@ -209,4 +209,48 @@
 
 <!-- Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<!-- CSRF helper -->
+<script>
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+  const csrftoken = getCookie('csrftoken');
+</script>
+
+<!-- Define callback BEFORE loading GIS to be safe -->
+<script>
+  console.log("Page origin:", window.location.origin);
+  console.log("Google Sign-In script loaded");
+  window.handleCredentialResponse = async function(response) {
+    console.log("Credential response received:", response);
+    try {
+      const res = await fetch("{% url 'google_signin' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken
+        },
+        body: JSON.stringify({ id_token: response.credential })
+      });
+      console.log("Fetch response:", res);
+
+      const data = await res.json().catch(() => ({}));
+      console.log("Response data:", data);
+      if (res.ok && data.ok) {
+        window.location.href = "{% url 'dashboard' %}";
+      } else {
+        alert(data.message || "Google sign-in failed. Please try again.");
+      }
+    } catch (e) {
+      console.error("Error in handleCredentialResponse:", e);
+      alert("Network error during Google sign-in. Please try again.");
+    }
+  };
+</script>
+
+<!-- Load Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 {% endblock %}

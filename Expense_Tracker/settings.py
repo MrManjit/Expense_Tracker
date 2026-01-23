@@ -105,6 +105,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                "ledger.context_processors.google_settings",
             ],
         },
     },
@@ -184,3 +185,5 @@ WHITENOISE_AUTOREFRESH = False
 SESSION_COOKIE_AGE = 60 * 60  # seconds
 SESSION_SAVE_EVERY_REQUEST = True  # extend session on each request
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # optional; keep session until age
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", default="")
