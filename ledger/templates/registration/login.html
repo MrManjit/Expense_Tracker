@@ -131,23 +131,19 @@
         border: none;
     }
 
-    .demo-credentials {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 15px;
-        margin-top: 20px;
-        text-align: center;
-        border: 1px solid #dee2e6;
-    }
-
-    .demo-credentials p {
-        margin: 0;
+    .or-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
         color: #6c757d;
-        font-size: 14px;
+        margin: 16px 0;
     }
-
-    .demo-credentials strong {
-        color: #495057;
+    .or-divider::before,
+    .or-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #e9ecef;
     }
 </style>
 
@@ -160,7 +156,7 @@
         </div>
 
         <div class="card-body p-4">
-            <form method="post">
+            <form method="post" action="">
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}
@@ -191,18 +187,37 @@
                     {% endif %}
                 </div>
 
-                <div class="d-grid gap-2 mb-3">
+                <div class="d-grid gap-2 mb-2">
                     <button type="submit" class="btn btn-login">Login</button>
                 </div>
-
-                <!-- <div class="text-center">
-                    <a href="{% url 'dashboard' %}" class="btn btn-cancel">Back to Dashboard</a>
-                </div> -->
             </form>
 
-            <!-- <div class="demo-credentials">
-                <p><strong>Demo Credentials:</strong> admin / admin123</p>
-            </div> -->
+            <!-- Divider -->
+            <div class="or-divider"><span>or</span></div>
+
+            <!-- ---------- Google Sign-In (Continue with Google) ---------- -->
+            <!-- 1) GIS configuration -->
+            <!-- DEBUG: GOOGLE_CLIENT_ID = {{ GOOGLE_CLIENT_ID }} -->
+            <div id="g_id_onload"
+                 data-client_id="{{ GOOGLE_CLIENT_ID }}"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+
+            <!-- 2) The visual button -->
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="outline"
+                 data-text="continue_with"
+                 data-size="large"
+                 data-logo_alignment="left"
+                 style="margin-top: 8px;">
+            </div>
+            <!-- ---------- End Google Sign-In ---------- -->
+
         </div>
     </div>
 </div>
