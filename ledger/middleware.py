@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta, timezone
 from django.shortcuts import redirect
 from django.urls import reverse
-
+from django.contrib.sessions.middleware import SessionMiddleware
 from Expense_Tracker import settings
 
 class IdleSessionTimeoutMiddleware:
@@ -49,3 +49,23 @@ class IdleSessionTimeoutMiddleware:
 
         response = self.get_response(request)
         return response
+    
+class SeparateSessionMiddleware(SessionMiddleware):
+    """
+    Separate admin and frontend sessions using different cookie names.
+    Admin uses 'admin_sessionid', frontend uses 'sessionid'.
+    Inherits from SessionMiddleware to pass Django's admin checks.
+    """
+    def process_request(self, request):
+        if request.path.startswith('/admin/'):
+            self.cookie_name = 'admin_sessionid'
+        else:
+            self.cookie_name = 'sessionid'
+        super().process_request(request)
+
+    def process_response(self, request, response):
+        if request.path.startswith('/admin/'):
+            self.cookie_name = 'admin_sessionid'
+        else:
+            self.cookie_name = 'sessionid'
+        return super().process_response(request, response)

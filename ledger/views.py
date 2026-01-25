@@ -26,6 +26,7 @@ from django.views.decorators.csrf import csrf_protect
 
 from google.oauth2 import id_token
 from google.auth.transport import requests as grequests
+import logging
 
 # --------------------------------------------------------------------------------------
 
@@ -587,6 +588,9 @@ def health(request):
     # Must be super lightweight; no DB, no cache misses, no auth
     return HttpResponse("ok", content_type="text/plain")
 
+# Set up logging
+logger = logging.getLogger(__name__)
+
 @login_required
 def keepalive(request):
     # Simply touch the session; Idle middleware will update last_activity
@@ -602,29 +606,43 @@ def google_signin(request):
     Verifies Google ID token, upserts a user by email, and logs them in via Django session.
     Expects JSON body: {"id_token": "<JWT>"}
     """
+    logger.info("Google sign-in request received")
+    
     # Parse JSON
     try:
         data = json.loads(request.body.decode("utf-8"))
-    except Exception:
+        logger.debug("Request body parsed successfully")
+    except Exception as e:
+        logger.error(f"Failed to parse JSON: {e}")
         return HttpResponseBadRequest("Invalid JSON")
 
     token = data.get("id_token")
     if not token:
+        logger.warning("No id_token provided in request")
         return HttpResponseBadRequest("id_token missing")
 
-    if not getattr(settings, "GOOGLE_CLIENT_ID", ""):
+    client_id = getattr(settings, "GOOGLE_CLIENT_ID", "")
+    if not client_id:
+        logger.error("GOOGLE_CLIENT_ID not configured in settings")
         return JsonResponse({"ok": False, "message": "Server misconfigured: GOOGLE_CLIENT_ID missing"}, status=500)
+    
+    logger.info(f"Google client ID configured: {client_id[:10]}...")
 
     try:
         # Verify signature & claims
+        logger.info("Verifying Google ID token...")
         claims = id_token.verify_oauth2_token(
             token,
             grequests.Request(),
-            settings.GOOGLE_CLIENT_ID,
+            client_id,
         )
+        logger.info(f"Token verified successfully. Claims: {list(claims.keys())}")
 
         # Issuer check
-        if claims.get("iss") not in ["accounts.google.com", "https://accounts.google.com"]:
+        issuer = claims.get("iss")
+        valid_issuers = ["accounts.google.com", "https://accounts.google.com"]
+        if issuer not in valid_issuers:
+            logger.warning(f"Invalid token issuer: {issuer}")
             return JsonResponse({"ok": False, "message": "Invalid token issuer"}, status=401)
 
         # Basic claims
@@ -634,9 +652,13 @@ def google_signin(request):
         picture = claims.get("picture")
         sub = claims.get("sub")  # Stable Google user id as string
 
+        logger.info(f"Token claims - email: {email}, email_verified: {email_verified}, name: {name}")
+
         if not email:
+            logger.warning("Email missing from Google token")
             return JsonResponse({"ok": False, "message": "Email missing from Google token"}, status=400)
         if not email_verified:
+            logger.warning(f"Email {email} not verified with Google")
             return JsonResponse({"ok": False, "message": "Email not verified with Google"}, status=403)
 
         # (Optional) Restrict to a domain:
@@ -647,6 +669,8 @@ def google_signin(request):
         # Upsert user by email
         first_name = name.split(" ")[0] if name else ""
         last_name = " ".join(name.split(" ")[1:]) if name and len(name.split(" ")) > 1 else ""
+        
+        logger.info(f"Looking up or creating user with email: {email}")
         user, created = User.objects.get_or_create(
             email=email,
             defaults={
@@ -655,6 +679,11 @@ def google_signin(request):
                 "last_name": last_name,
             },
         )
+        
+        if created:
+            logger.info(f"New user created: {email}")
+        else:
+            logger.info(f"Existing user found: {email}")
 
         # Optionally update names if empty and Google provided them
         fields_to_update = []
@@ -666,6 +695,7 @@ def google_signin(request):
             fields_to_update.append("last_name")
         if fields_to_update:
             user.save(update_fields=fields_to_update)
+            logger.debug(f"Updated user fields: {fields_to_update}")
 
         # If you want to persist Google sub / avatar, add a Profile model and store:
         # profile, _ = Profile.objects.get_or_create(user=user)
@@ -675,9 +705,10 @@ def google_signin(request):
 
         # Create Django session
         login(request, user)
+        logger.info(f"User {email} logged in successfully via Google OAuth")
 
         # Frontend will redirect to dashboard on success
         return JsonResponse({"ok": True})
     except Exception as e:
-        # You can log e for debugging in server logs
+        logger.error(f"Google sign-in failed: {type(e).__name__}: {e}", exc_info=True)
         return JsonResponse({"ok": False, "message": f"Invalid token: {str(e)}"}, status=401)

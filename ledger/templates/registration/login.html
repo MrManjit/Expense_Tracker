@@ -1,3 +1,4 @@
+
 {% extends 'ledger/base.html' %}
 {% load static %}
 
@@ -8,7 +9,7 @@
     .login-container {
         min-height: 100vh;
         background: linear-gradient(135deg, rgba(188, 205, 199, 0.8) 0%, rgba(173, 176, 143, 0.8) 100%),
-                    url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+                    url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
         background-size: cover;
         display: flex;
         align-items: center;
@@ -16,85 +17,48 @@
         padding: 20px;
         position: relative;
     }
-
     .login-container::before {
         content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        position: absolute; inset: 0;
         background: rgba(0, 0, 0, 0.3);
         z-index: 1;
     }
-
     .login-card {
         background: rgba(255, 255, 255, 0.98);
         backdrop-filter: blur(20px);
         border: none;
         border-radius: 20px;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-        max-width: 450px;
-        width: 100%;
-        overflow: hidden;
-        position: relative;
-        z-index: 2;
+        max-width: 450px; width: 100%;
+        overflow: hidden; position: relative; z-index: 2;
     }
-
     .login-header {
         background: linear-gradient(135deg, #2c5530 0%, #1e7b3d 100%);
-        color: white;
-        padding: 30px 20px;
-        text-align: center;
-        margin: -20px -20px 20px -20px;
-        position: relative;
+        color: white; padding: 30px 20px; text-align: center;
+        margin: -20px -20px 20px -20px; position: relative;
     }
-
-    .login-header h4 {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 600;
-    }
-
-    .login-icon {
-        font-size: 48px;
-        margin-bottom: 10px;
-        opacity: 0.9;
-    }
+    .login-header h4 { margin: 0; font-size: 28px; font-weight: 600; }
+    .login-icon { font-size: 48px; margin-bottom: 10px; opacity: 0.9; }
 
     .form-control {
-        border-radius: 10px;
-        border: 2px solid #e9ecef;
-        padding: 12px 16px;
-        font-size: 16px;
-        transition: all 0.3s ease;
-        width: 100%;
-        box-sizing: border-box;
+        border-radius: 10px; border: 2px solid #e9ecef;
+        padding: 12px 16px; font-size: 16px; transition: all 0.3s ease;
+        width: 100%; box-sizing: border-box;
     }
-
     .form-control:focus {
         border-color: #2c5530;
         box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
         outline: none;
     }
-
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
+    .form-group { margin-bottom: 1.5rem; }
 
     .btn-login {
         background: linear-gradient(135deg, #2c5530 0%, #1e7b3d 100%);
-        border: none;
-        border-radius: 10px;
-        padding: 12px 30px;
-        font-size: 16px;
-        font-weight: 600;
-        color: white;
-        transition: all 0.3s ease;
-        width: 100%;
+        border: none; border-radius: 10px; padding: 12px 30px;
+        font-size: 16px; font-weight: 600; color: white;
+        transition: all 0.3s ease; width: 100%;
         box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
     }
-
     .btn-login:hover {
         transform: translateY(-2px);
         box-shadow: 0 10px 25px rgba(46, 125, 50, 0.4);
@@ -102,48 +66,32 @@
         background: linear-gradient(135deg, #1e7b3d 0%, #2c5530 100%);
     }
 
-    .btn-cancel {
-        background: #6c757d;
-        border: none;
+    .btn-social {
         border-radius: 10px;
         padding: 12px 30px;
         font-size: 16px;
         font-weight: 600;
-        color: white;
         transition: all 0.3s ease;
-        width: 100%;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
     }
-
-    .btn-cancel:hover {
-        background: #5a6268;
+    .btn-social:hover {
         transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        text-decoration: none;
         color: white;
     }
 
-    .form-label {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 8px;
-    }
-
-    .alert {
-        border-radius: 10px;
-        border: none;
-    }
+    .form-label { font-weight: 600; color: #495057; margin-bottom: 8px; }
+    .alert { border-radius: 10px; border: none; }
 
     .or-divider {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: #6c757d;
-        margin: 16px 0;
+        display: flex; align-items: center; gap: 12px;
+        color: #6c757d; margin: 16px 0;
     }
-    .or-divider::before,
-    .or-divider::after {
-        content: "";
-        flex: 1;
-        height: 1px;
-        background: #e9ecef;
+    .or-divider::before, .or-divider::after {
+        content: ""; flex: 1; height: 1px; background: #e9ecef;
     }
 </style>
 
@@ -161,9 +109,7 @@
 
                 {% if form.non_field_errors %}
                     <div class="alert alert-danger">
-                        {% for error in form.non_field_errors %}
-                            {{ error }}
-                        {% endfor %}
+                        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
                     </div>
                 {% endif %}
 
@@ -195,77 +141,16 @@
             <!-- Divider -->
             <div class="or-divider"><span>or</span></div>
 
-            <!-- ---------- Google Sign-In (Continue with Google) ---------- -->
-            <!-- 1) GIS configuration -->
-            <!-- DEBUG: GOOGLE_CLIENT_ID = {{ GOOGLE_CLIENT_ID }} -->
-            <div id="g_id_onload"
-                 data-client_id="{{ GOOGLE_CLIENT_ID }}"
-                 data-context="signin"
-                 data-ux_mode="popup"
-                 data-callback="handleCredentialResponse"
-                 data-auto_prompt="false">
+            <!-- Social Login with Allauth -->
+            <div class="d-grid gap-2 mb-3">
+                <a href="/accounts/google/login/" class="btn btn-outline-danger btn-social">
+                    <i class="fab fa-google me-2"></i>Continue with Google
+                </a>
             </div>
-
-            <!-- 2) The visual button -->
-            <div class="g_id_signin"
-                 data-type="standard"
-                 data-shape="rectangular"
-                 data-theme="outline"
-                 data-text="continue_with"
-                 data-size="large"
-                 data-logo_alignment="left"
-                 style="margin-top: 8px;">
-            </div>
-            <!-- ---------- End Google Sign-In ---------- -->
-
         </div>
     </div>
 </div>
 
 <!-- Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-<!-- CSRF helper -->
-<script>
-  function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-  }
-  const csrftoken = getCookie('csrftoken');
-</script>
-
-<!-- Define callback BEFORE loading GIS to be safe -->
-<script>
-  console.log("Page origin:", window.location.origin);
-  console.log("Google Sign-In script loaded");
-  window.handleCredentialResponse = async function(response) {
-    console.log("Credential response received:", response);
-    try {
-      const res = await fetch("{% url 'google_signin' %}", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrftoken
-        },
-        body: JSON.stringify({ id_token: response.credential })
-      });
-      console.log("Fetch response:", res);
-
-      const data = await res.json().catch(() => ({}));
-      console.log("Response data:", data);
-      if (res.ok && data.ok) {
-        window.location.href = "{% url 'dashboard' %}";
-      } else {
-        alert(data.message || "Google sign-in failed. Please try again.");
-      }
-    } catch (e) {
-      console.error("Error in handleCredentialResponse:", e);
-      alert("Network error during Google sign-in. Please try again.");
-    }
-  };
-</script>
-
-<!-- Load Google Identity Services -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 {% endblock %}

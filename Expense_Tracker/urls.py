@@ -66,4 +66,5 @@ urlpatterns = [
     path("healthz", health, name="healthz"),
     path("", include("ledger.urls")),
     path("", RedirectView.as_view(pattern_name="dashboard", permanent=False)),
+    path("accounts/", include("allauth.urls")),  # allauth routes
 ]
