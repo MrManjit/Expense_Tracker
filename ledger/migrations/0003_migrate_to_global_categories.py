@@ -19,6 +19,7 @@ def migrate_to_global_categories(apps, schema_editor):
             'Fast Food',
             'Coffee Shops',
             'Delivery',
+            'Office'
         ],
         'Transportation': [
             'Fuel',
@@ -26,7 +27,8 @@ def migrate_to_global_categories(apps, schema_editor):
             'Taxi/Rideshare',
             'Parking',
             'Car Maintenance',
-            'Car Insurance',
+            'Bike Maintenance',
+            'Scooty Maintenance',
         ],
         'Housing': [
             'Rent',
@@ -88,6 +90,8 @@ def migrate_to_global_categories(apps, schema_editor):
             'Car Insurance',
             'Home Insurance',
             'Life Insurance',
+            'Bike Insurance',
+            'Scooty Insurance',
         ],
         'Savings & Investments': [
             'Emergency Fund',
@@ -106,7 +110,13 @@ def migrate_to_global_categories(apps, schema_editor):
         ],
         'Religious Products': [
             'Pooja Essentials',
-            ]
+        ],
+        'Baby Care': [
+            'Essentials',
+            'Toys',
+            'Clothing',
+            'Healthcare',
+        ]
     }
     
     # Create global categories and subcategories

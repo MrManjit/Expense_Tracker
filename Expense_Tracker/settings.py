@@ -203,9 +203,26 @@ AUTHENTICATION_BACKENDS = [
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "dashboard"
 
+# ACCOUNT_EMAIL_REQUIRED = True
+# ACCOUNT_USERNAME_REQUIRED = False
+# ACCOUNT_EMAIL_VERIFICATION = "optional"
+
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "optional"
+ACCOUNT_SIGNUP_FIELDS = ["first_name", "last_name"]
+
+# Email configuration using SendGrid
+EMAIL_HOST = "smtp.sendgrid.net"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = "apikey" 
+EMAIL_HOST_PASSWORD = "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"
+
+DEFAULT_FROM_EMAIL = "mj.ahlawat14@gmail.com"
 
 # Logging configuration
 LOGGING = {

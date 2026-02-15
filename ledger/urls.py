@@ -30,6 +30,7 @@ urlpatterns = [
 
     # Misc
     path('test/', views.test_view, name='test'),
+    path('test/download/', views.export_expenses_csv, name='export_expenses'),
 
     # Health (keep /health for compatibility)
     path('health/', views.health, name='health'),

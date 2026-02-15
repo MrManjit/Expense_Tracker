@@ -48,6 +48,9 @@
     <div class="col-md-3 align-self-end">
       <button class="btn btn-primary">Apply</button>
       <a href="{% url 'test' %}" class="btn btn-outline-secondary ms-1">Reset</a>
+      <a href="{% url 'export_expenses' %}?year={{ selected_year }}&amp;month={{ selected_month }}&amp;category={{ selected_category }}" class="btn btn-outline-success ms-1" title="Download CSV">
+        <i class="fas fa-download"></i>
+      </a>
     </div>
   </form>
 

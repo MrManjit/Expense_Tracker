@@ -57,6 +57,19 @@
         .navbar-text {
             color: rgba(255, 255, 255, 0.9) !important;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
         }
 
         .main-content {
@@ -398,7 +411,7 @@
         }
     </style>
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container">
             <a class="navbar-brand" href="{% url 'dashboard' %}">

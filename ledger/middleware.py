@@ -1,4 +1,3 @@
-
 # ledger/middleware.py
 from datetime import datetime, timedelta, timezone
 from django.shortcuts import redirect

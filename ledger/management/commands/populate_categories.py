@@ -13,6 +13,7 @@ class Command(BaseCommand):
                 'Fast Food',
                 'Coffee Shops',
                 'Delivery',
+                'Office'
             ],
             'Transportation': [
                 'Fuel',
@@ -21,7 +22,7 @@ class Command(BaseCommand):
                 'Parking',
                 'Car Maintenance',
                 'Bike Maintenance',
-                'Car Insurance',
+                'Scooty Maintenance',
             ],
             'Housing': [
                 'Rent',
@@ -83,6 +84,8 @@ class Command(BaseCommand):
                 'Car Insurance',
                 'Home Insurance',
                 'Life Insurance',
+                'Bike Insurance',
+                'Scooty Insurance',
             ],
             'Savings & Investments': [
                 'Emergency Fund',
@@ -101,6 +104,12 @@ class Command(BaseCommand):
             ],
             'Religious Products': [
                 'Pooja Essentials',
+            ],
+            'Baby Care': [
+                'Essentials',
+                'Toys',
+                'Clothing',
+                'Healthcare',
             ]
         }
 
