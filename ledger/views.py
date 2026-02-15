@@ -27,6 +27,7 @@ from django.views.decorators.csrf import csrf_protect
 from google.oauth2 import id_token
 from google.auth.transport import requests as grequests
 import logging
+import csv
 
 # --------------------------------------------------------------------------------------
 
@@ -587,6 +588,58 @@ def test_view(request):
 def health(request):
     # Must be super lightweight; no DB, no cache misses, no auth
     return HttpResponse("ok", content_type="text/plain")
+
+# Set up logging
+logger = logging.getLogger(__name__)
+
+@login_required
+def export_expenses_csv(request):
+    """Export filtered expenses as CSV with columns: date, category, subcategory, amount, description.
+
+    Accepts GET params: year, month, category (category id or 'all').
+    """
+    today = date.today()
+    try:
+        year = int(request.GET.get('year', today.year))
+    except (TypeError, ValueError):
+        year = today.year
+
+    try:
+        month = int(request.GET.get('month', today.month))
+    except (TypeError, ValueError):
+        month = today.month
+
+    category = request.GET.get('category', 'all')
+
+    qs = Expense.objects.filter(user=request.user, date__year=year, date__month=month).order_by('date')
+    if category and category != 'all':
+        try:
+            cat_id = int(category)
+            qs = qs.filter(category_id=cat_id)
+        except ValueError:
+            pass
+
+    # Build CSV response
+    filename = f"expenses_{request.user.id}_{year}_{month}.csv"
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+    writer.writerow(['date', 'category', 'subcategory', 'amount', 'description'])
+
+    for e in qs:
+        category_name = e.category.name if e.category else ''
+        subcategory_name = e.subcategory.name if e.subcategory else ''
+        writer.writerow([
+            e.date.isoformat(),
+            category_name,
+            subcategory_name,
+            str(e.amount),
+            e.description or '',
+        ])
+
+    return response
+    return response
 
 # Set up logging
 logger = logging.getLogger(__name__)
